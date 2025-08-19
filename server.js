@@ -9,8 +9,6 @@ dotenv.config();
 
 const app = express();
 
-// ------------------- CORS -------------------
-// Allow frontend requests (React dev server usually on http://localhost:5173)
 const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
 
 app.use(cors({
@@ -20,13 +18,10 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
-// Handle preflight requests
 app.options("*", cors());
 
-// ------------------- MIDDLEWARE -------------------
 app.use(express.json());
 
-// ------------------- MONGOOSE SETUP -------------------
 mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/blogDB", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -34,7 +29,6 @@ mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/blogDB", {
 .then(() => console.log("MongoDB Connected"))
 .catch((err) => console.error("MongoDB connection error:", err));
 
-// ------------------- USER MODEL -------------------
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
@@ -53,7 +47,6 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 
 const User = mongoose.model("User", userSchema);
 
-// ------------------- BLOG MODEL -------------------
 const blogSchema = new mongoose.Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
@@ -64,7 +57,6 @@ const blogSchema = new mongoose.Schema({
 
 const Blog = mongoose.model("Blog", blogSchema);
 
-// ------------------- AUTH ROUTES -------------------
 app.post("/api/auth/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -103,7 +95,6 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// ------------------- AUTH MIDDLEWARE -------------------
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "No token provided" });
@@ -120,7 +111,6 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// ------------------- BLOG ROUTES -------------------
 app.get("/api/blogs", async (req, res) => {
   try {
     const blogs = await Blog.find().sort({ createdAt: -1 }).populate("author", "username");
@@ -184,6 +174,5 @@ app.delete("/api/blogs/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// ------------------- START SERVER -------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
