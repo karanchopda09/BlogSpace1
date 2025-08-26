@@ -12,16 +12,17 @@ import blogRoutes from "./routes/blogRoutes.js";
 dotenv.config();
 const app = express();
 
-// ------------------- MIDDLEWARE -------------------
-app.use(
-  cors({
-    origin: "*", // replace with frontend URL in production
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
 
-// JSON parsing
+app.use(cors({
+  origin: "https://ghastly-strong-bullfrog.ngrok-free.app",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+app.options("*", cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -49,6 +50,5 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/blogs", blogRoutes);
 
-// ------------------- START SERVER -------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
